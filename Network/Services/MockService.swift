@@ -13,7 +13,7 @@ struct MockService: Service {
             "loading failed"
         }
     }
-
+    
     func getUsers() async throws -> [User] {
         return []
     }
@@ -25,5 +25,5 @@ struct MockService: Service {
     func getComments(postId: Int) async throws -> [Comment] {
         return []
     }
-
+    
 }

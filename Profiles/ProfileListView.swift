@@ -6,15 +6,50 @@
 //
 
 import SwiftUI
+import SDWebImageSwiftUI
 
 struct ProfilesListView: View {
+    
+    @EnvironmentObject
+    var reactor: ProfilesReactor
+    
     var body: some View {
         VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundColor(.accentColor)
-            Text("Hello, world!")
+            
+            List {
+                
+                ForEach(reactor.state.users.item ?? [], id: \.id) { user in
+                    NavigationLink(value: user) {
+                        Text(user.name)
+                    }
+                    
+                }
+            }
+            .navigationDestination(for: User.self) {
+                ReactorView(PostsReactor(state: PostsReactor.State(user: $0))) { PostsListView() }
+                    .navigationTitle("\($0.name)")
+            }
+            
         }
+        //        .animation(.spring(), value: reactor.state.users)
+        .onAppear {
+            Task {
+                await reactor.action(.loadUsers)
+            }
+        }
+        .refreshable {
+            Task {
+                await reactor.action(.loadUsers)
+            }
+        }
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                if reactor.state.users.isLoading {
+                    ActivityIndicator(.constant(true), style: .medium)
+                }
+            }
+        }
+        
     }
 }
 

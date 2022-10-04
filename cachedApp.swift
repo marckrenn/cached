@@ -6,12 +6,16 @@
 //
 
 import SwiftUI
+import AsyncReactor
 
 @main
 struct cachedApp: App {
     var body: some Scene {
         WindowGroup {
-            ProfilesListView()
+            NavigationStack {
+                ReactorView(ProfilesReactor()) { ProfilesListView() }
+                    .navigationTitle("Users")
+            }
         }
     }
 }

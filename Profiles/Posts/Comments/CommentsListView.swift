@@ -6,10 +6,53 @@
 //
 
 import SwiftUI
+import SDWebImageSwiftUI
 
 struct CommentsListView: View {
+    
+    @EnvironmentObject
+    var reactor: CommentsReactor
+    
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        VStack {
+            
+            List {
+                
+                Text(reactor.state.post?.body ?? "")
+                
+                Text("\((reactor.state.comments.item ?? []).count) comments:")
+                    .bold()
+                
+                ForEach(reactor.state.comments.item ?? [], id: \.id) { comment in
+                    VStack(alignment: .leading, spacing: 5) {
+                        Text(comment.body)
+                        Text("By: \(comment.email)")
+                            .font(.caption)
+                    }
+                    
+                }
+            }
+            
+        }
+        //        .animation(.spring(), value: reactor.state.users)
+        .onAppear {
+            Task {
+                await reactor.action(.loadComments)
+            }
+        }
+        .refreshable {
+            Task {
+                await reactor.action(.loadComments)
+            }
+        }
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                if reactor.state.comments.isLoading {
+                    ActivityIndicator(.constant(true), style: .medium)
+                }
+            }
+        }
+        
     }
 }
 

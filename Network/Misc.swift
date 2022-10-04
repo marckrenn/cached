@@ -11,10 +11,10 @@ import Endpoints
 class CustomJSONParser<T: Decodable>: JSONParser<T> {
     override var jsonDecoder: JSONDecoder {
         let decoder = JSONDecoder()
-
+        
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = [.withFractionalSeconds, .withInternetDateTime]
-
+        
         decoder.dateDecodingStrategy = .custom({ decoder in
             let container = try decoder.singleValueContainer()
             let dateString = try container.decode(String.self)
@@ -34,7 +34,7 @@ extension Encodable where Self: Body {
     public var header: Parameters? {
         ["Content-Type": "application/json"]
     }
-
+    
     public var requestData: Data {
         (try? JSONEncoder().encode(self)) ?? Data()
     }

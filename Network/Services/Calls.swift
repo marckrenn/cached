@@ -10,7 +10,7 @@ import Endpoints
 
 struct GetUsers: Call {
     typealias Parser = CustomJSONParser<[User]>
-
+    
     var request: URLRequestEncodable {
         Request(.get, "users")
     }
@@ -19,17 +19,17 @@ struct GetUsers: Call {
 struct GetPosts: Call {
     typealias Parser = CustomJSONParser<[Post]>
     let userId: Int
-
+    
     var request: URLRequestEncodable {
-        Request(.get, "posts?userId=\(userId)")
+        Request(.get, "posts", query: ["userId": String(userId)])
     }
 }
 
 struct GetComments: Call {
     typealias Parser = CustomJSONParser<[Comment]>
     let postId: Int
-
+    
     var request: URLRequestEncodable {
-        Request(.get, "comments?postId=\(postId)")
+        Request(.get, "comments", query: ["postId": String(postId)])
     }
 }
