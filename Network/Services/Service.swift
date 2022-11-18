@@ -8,6 +8,9 @@
 import Foundation
 
 protocol Service {
+    
+    func removeAllCachedResponses()
+    
     func getUsers(loadWithCache: Bool) async throws -> EndpointsResult<[User]>
     func getPosts(userId: Int, loadWithCache: Bool) async throws -> EndpointsResult<[Post]>
     func getComments(postId: Int, loadWithCache: Bool) async throws -> EndpointsResult<[Comment]>

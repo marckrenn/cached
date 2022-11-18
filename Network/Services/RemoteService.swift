@@ -30,6 +30,9 @@ struct RemoteService: Service {
         return session
     }()
     
+    func removeAllCachedResponses() {
+        session.urlSession.configuration.urlCache?.removeAllCachedResponses()
+    }
     
     func getUsers(loadWithCache: Bool) async throws -> EndpointsResult<[User]> {
         try await makeCall(GetUsers(), loadWidthCache: loadWithCache)

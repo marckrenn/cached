@@ -11,7 +11,7 @@ import SDWebImageSwiftUI
 public func randomString(length: Int = 20) -> String {
     let base = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
     var randomString: String = ""
-
+    
     for _ in 0..<length {
         let randomValue = arc4random_uniform(UInt32(base.count))
         randomString += "\(base[base.index(base.startIndex, offsetBy: Int(randomValue))])"
@@ -25,6 +25,7 @@ struct ProfilesListView: View {
     var reactor: ProfilesReactor
     
     @State private var placeholderUser: [User] = []
+    @State private var showingAlert = false
     
     private func generatePlaceholderUsers(count: Int) -> [User] {
         return (1...count).map {
@@ -47,16 +48,18 @@ struct ProfilesListView: View {
                 }
                 .disabled(reactor.state.users.source == .none ? true : false)
             }
-//            .animation(.spring(), value: reactor.state.users.item)
             .navigationDestination(for: User.self) {
                 ReactorView(PostsReactor(state: PostsReactor.State(user: $0))) { PostsListView() }
                     .navigationTitle("\($0.name)'s")
             }
             
-
-            StateBarView(state: reactor.state.users,
-                         onTap: { Task { await reactor.action(.loadUsers) }})
-            
+        }
+        
+        .toolbar {
+            ToolbarItem(placement: .bottomBar) {
+                StateBarView(state: reactor.state.users,
+                             onTap: { Task { await reactor.action(.loadUsers) }})
+            }
         }
         
         .onAppear {
@@ -73,7 +76,20 @@ struct ProfilesListView: View {
                     await reactor.action(.loadUsers)
                 }
             }
-
+            
+        }
+        .toolbar {
+            Button(action: { showingAlert.toggle() }) {
+                Image(systemName: "trash")
+                    .foregroundColor(.red)
+            }
+        }
+        .alert("Remove all cached responses?", isPresented: $showingAlert) {
+            Button("Cancel", role: .cancel) { }
+            Button("Remove", role: .destructive) {
+                Task {
+                    await reactor.action(.removeAllCachedResponses)
+                }}
         }
         
     }

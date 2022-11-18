@@ -28,8 +28,8 @@ struct PostsListView: View {
                 
                 Section(header:
                             
-                    Text("Recent blog posts")
-                        .bold()
+                            Text("Recent blog posts")
+                    .bold()
                         
                 ) {
                     
@@ -46,15 +46,19 @@ struct PostsListView: View {
                     .disabled(reactor.state.posts.source == .none ? true : false)
                 }
             }
-//            .animation(.spring(), value: reactor.state.posts.item)
             .navigationDestination(for: Post.self) {
                 ReactorView(CommentsReactor(state: CommentsReactor.State(post: $0))) { CommentsListView() }
                     .navigationTitle("Blog Post")
                     .navigationBarTitleDisplayMode(.inline)
             }
             
-            StateBarView(state: reactor.state.posts,
-                         onTap: { Task { await reactor.action(.loadPosts) }})
+        }
+        
+        .toolbar {
+            ToolbarItem(placement: .bottomBar) {
+                StateBarView(state: reactor.state.posts,
+                             onTap: { Task { await reactor.action(.loadPosts) }})
+            }
         }
         
         .onAppear {

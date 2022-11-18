@@ -7,6 +7,7 @@
 
 import SwiftUI
 import AsyncReactor
+import Endpoints
 
 class ProfilesReactor: AsyncReactor {
     
@@ -17,10 +18,11 @@ class ProfilesReactor: AsyncReactor {
     
     enum Action {
         case loadUsers
+        case removeAllCachedResponses
     }
     
     struct State {
-        var users = AsyncLoad<[User]>.none
+        var users = AsyncLoad<GetUsers>.none
     }
     
     @MainActor
@@ -42,8 +44,8 @@ class ProfilesReactor: AsyncReactor {
                         } catch { }
                     }
                     
-                } catch {
-                    state.users = .error(error)
+                } catch HttpError<GetUsers>.NoResponseWithCache(let error) {
+                    state.users = .errorWithCache(error)
                     print("Error info: \(error)")
                 }
                 
@@ -52,6 +54,7 @@ class ProfilesReactor: AsyncReactor {
                 print("Error info: \(error)")
             }
             
+        case .removeAllCachedResponses: api.removeAllCachedResponses()
         }
     }
     

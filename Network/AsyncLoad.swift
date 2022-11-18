@@ -8,9 +8,9 @@
 import Foundation
 import Endpoints
 
-public enum AsyncLoad<T> {
+public enum AsyncLoad<C: Call> {
     
-    public static func == (lhs: AsyncLoad<T>, rhs: AsyncLoad<T>) -> Bool {
+    public static func == (lhs: AsyncLoad<C>, rhs: AsyncLoad<C>) -> Bool {
         switch (lhs, rhs) {
         case (.none, .none):
             return true
@@ -32,9 +32,10 @@ public enum AsyncLoad<T> {
     case none
     case loading
     case error(Error)
-    case loaded(EndpointsResult<T>)
-    case cached(EndpointsResult<T>)
-    case loadingWithCache(EndpointsResult<T>)
+    case errorWithCache((HttpResult<C>, Error))
+    case loaded(EndpointsResult<C.Parser.OutputType>)
+    case cached(EndpointsResult<C.Parser.OutputType>)
+    case loadingWithCache(EndpointsResult<C.Parser.OutputType>)
     
     public var isLoading: Bool {
         switch self {
@@ -45,11 +46,13 @@ public enum AsyncLoad<T> {
         }
     }
     
-    public var item: T? {
+    public var item: C.Parser.OutputType? {
         get {
             switch self {
             case .loaded(let item), .cached(let item), .loadingWithCache(let item):
                 return item.data
+            case .errorWithCache(let error):
+                return error.0.value
             default:
                 return nil
             }
@@ -57,7 +60,7 @@ public enum AsyncLoad<T> {
         
         set {
             if let item = newValue {
-                self = .loaded(item as! EndpointsResult<T>)
+                self = .loaded(item as! EndpointsResult<C.Parser.OutputType>)
             } else {
                 self = .none
             }
@@ -68,6 +71,8 @@ public enum AsyncLoad<T> {
         switch self {
         case .loaded(let result), .cached(let result), .loadingWithCache(let result):
             return result.source
+        case .errorWithCache(let error):
+            return error.0.source
         default:
             return .none
         }
@@ -75,9 +80,12 @@ public enum AsyncLoad<T> {
     
     public var error: Error? {
         switch self {
-        case let .error(error):
+        case .error(let error):
             guard !self.isLoading else { return nil }
             return error
+        case .errorWithCache(let error):
+            guard !self.isLoading else { return nil }
+            return error.1
         default:
             return nil
         }
@@ -88,6 +96,9 @@ public enum AsyncLoad<T> {
         case .loaded(let result), .cached(let result), .loadingWithCache(let result):
             guard !self.isLoading else { return nil }
             return result.response
+        case .errorWithCache(let error):
+            guard !self.isLoading else { return nil }
+            return error.0.response
         default:
             return nil
         }

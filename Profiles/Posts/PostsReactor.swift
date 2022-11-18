@@ -7,6 +7,7 @@
 
 import SwiftUI
 import AsyncReactor
+import Endpoints
 
 class PostsReactor: AsyncReactor {
     
@@ -21,7 +22,7 @@ class PostsReactor: AsyncReactor {
     
     struct State {
         var user: User?
-        var posts = AsyncLoad<[Post]>.none
+        var posts = AsyncLoad<GetPosts>.none
     }
     
     @MainActor
@@ -44,8 +45,8 @@ class PostsReactor: AsyncReactor {
                         } catch { }
                     }
                     
-                } catch {
-                    state.posts = .error(error)
+                } catch HttpError<GetPosts>.NoResponseWithCache(let error) {
+                    state.posts = .errorWithCache(error)
                     print("Error info: \(error)")
                 }
                 

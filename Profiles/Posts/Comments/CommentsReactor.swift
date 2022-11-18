@@ -7,6 +7,7 @@
 
 import SwiftUI
 import AsyncReactor
+import Endpoints
 
 class CommentsReactor: AsyncReactor {
     
@@ -21,7 +22,7 @@ class CommentsReactor: AsyncReactor {
     
     struct State {
         var post: Post?
-        var comments = AsyncLoad<[Comment]>.none
+        var comments = AsyncLoad<GetComments>.none
     }
     
     @MainActor 
@@ -36,8 +37,8 @@ class CommentsReactor: AsyncReactor {
                 
                 do {
                     state.comments = .loaded(try await api.getComments(postId: state.post?.id ?? 0, loadWithCache: false))
-                } catch {
-                    state.comments = .error(error)
+                } catch HttpError<GetComments>.NoResponseWithCache(let error) {
+                    state.comments = .errorWithCache(error)
                     print("Error info: \(error)")
                 }
                 

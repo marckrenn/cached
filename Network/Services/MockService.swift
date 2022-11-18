@@ -15,6 +15,8 @@ struct MockService: Service {
         }
     }
     
+    func removeAllCachedResponses() { }
+    
     func getUsers(loadWithCache: Bool) async throws -> EndpointsResult<[User]> {
         return EndpointsResult(data: [], response: .init(), source: .none)
     }

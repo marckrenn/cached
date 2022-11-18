@@ -14,7 +14,7 @@ struct CommentsListView: View {
     var reactor: CommentsReactor
     
     private var commentCount: String { (reactor.state.comments.item ?? []).count == 0 ? "?" : String((reactor.state.comments.item ?? []).count)
-}
+    }
     
     var body: some View {
         VStack(spacing: 0) {
@@ -27,17 +27,17 @@ struct CommentsListView: View {
                         .font(.title2)
                     
                     Text(reactor.state.post?.body ?? "")
-                        
+                    
                 }
                 .listRowSeparator(.hidden)
                 
                 Section(header:
-                    
+                            
                             Text("\(commentCount) comments:")
                     .bold()
                         
                 ) {
-                
+                    
                     ForEach(reactor.state.comments.item ?? [], id: \.id) { comment in
                         VStack(alignment: .leading, spacing: 10) {
                             Text(comment.body)
@@ -50,10 +50,14 @@ struct CommentsListView: View {
                 }
             }                .listStyle(.plain)
             
-            StateBarView(state: reactor.state.comments,
-                         onTap: { Task { await reactor.action(.loadComments) }})
-            
         }
+        .toolbar {
+            ToolbarItem(placement: .bottomBar) {
+                StateBarView(state: reactor.state.comments,
+                             onTap: { Task { await reactor.action(.loadComments) }})
+            }
+        }
+        
         .onAppear {
             Task {
                 await reactor.action(.loadComments)

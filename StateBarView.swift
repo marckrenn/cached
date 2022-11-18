@@ -11,9 +11,9 @@ import SDWebImageSwiftUI
 import Endpoints
 import Combine
 
-struct StateBarView<T>: View {
+struct StateBarView<C: Call>: View {
     
-    let state: AsyncLoad<T>
+    let state: AsyncLoad<C>
     let onTap: () -> ()
     
     @State private var cacheAge = ""
@@ -31,21 +31,11 @@ struct StateBarView<T>: View {
         }
     }
     
-//    func getStateString(_ state: AsyncLoad<T>) -> String {
-//
-//        if let error = state.error {
-//            return error.localizedDescription
-//        }
-//
-//        return state.isLoading ? "Loading" : "Loaded"
-//
-//    }
-    
-    func getButtonLabelString(_ state: AsyncLoad<T>) -> String {
+    func getButtonLabelString(_ state: AsyncLoad<C>) -> String {
         state.error == nil ? "Reload" : "Retry"
     }
     
-    func cacheAge(_ state: AsyncLoad<T>, currentDate: Date) -> String? {
+    func cacheAge(_ state: AsyncLoad<C>, currentDate: Date) -> String? {
         let date = state.response?.allHeaderFields.first { key, value in
             return key == "Date" as AnyHashable
         }
@@ -58,65 +48,99 @@ struct StateBarView<T>: View {
         guard let cacheDate = cacheDate else { return nil}
         let relativeFormatter = RelativeDateTimeFormatter()
         relativeFormatter.unitsStyle = .abbreviated
-        var string = relativeFormatter.localizedString(for: cacheDate, relativeTo: Date())
+        let string = relativeFormatter.localizedString(for: cacheDate, relativeTo: Date())
         return string.contains("in 0 sec") ? "NOW" : state.source == .cache ? string.replacingOccurrences(of: "ago", with: "old") : string
-
-
+        
+        
     }
     
     var body: some View {
-        HStack() {
-            Text("\(state.error == nil ? "Source:" : "Error:")")
-                .bold()
-            
-            if let error = state.error {
-
-                Text("\(error.localizedDescription)")
-                    
-            } else {
-                Text("\(getSourceString(state.source))")
-            }
-            
-            if state.error == nil && !state.isLoading {
+//        VStack {
                 
-                Text(cacheAge.uppercased())
-                    .monospacedDigit()
-                    .bold()
-                    .font(.caption)
-                    .foregroundColor(.accentColor)
-                    .onReceive(timer) { input in
-                        cacheAge = cacheAge(state, currentDate: input) ?? "0 sec old"
+                
+                HStack {
+                    
+                    Text("\(getSourceString(state.source))")
+                        .bold()
+                    
+                    Spacer()
+                    
+                    if state.isLoading {
+                        
+                        ActivityIndicator(.constant(true), style: .medium)
+                        
+                    } else if state.source != .none {
+                        
+                        Text(cacheAge.uppercased())
+                            .monospacedDigit()
+                            .bold()
+                            .font(.caption)
+                            .foregroundColor(.accentColor)
+                            .onReceive(timer) { input in
+                                cacheAge = cacheAge(state, currentDate: input) ?? "0 sec old"
+                            }
+                            .padding(.vertical, 2)
+                            .padding(.horizontal, 5)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 5, style: .continuous)
+                                    .stroke(Color.accentColor, lineWidth: 1)
+                                    .background(Color.accentColor.opacity(0.1))
+                            )
                     }
-                    .padding(.vertical, 2)
-                    .padding(.horizontal, 5)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 5, style: .continuous)
-                            .stroke(Color.accentColor, lineWidth: 1)
-                            .background(Color.accentColor.opacity(0.1))
-                        )
-            }
-            
-            Spacer()
-            
-            Button(action: onTap) {
+                    
+                    if let error = state.error {
+                        
+                        Text("\(error.localizedDescription.uppercased())")
+                            .monospacedDigit()
+                            .bold()
+                            .font(.caption)
+                            .foregroundColor(.red)
+                            .padding(.vertical, 2)
+                            .padding(.horizontal, 5)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 5, style: .continuous)
+                                    .stroke(Color.red, lineWidth: 1)
+                                    .background(Color.red.opacity(0.1))
+                            )
+                        
 
-                if state.isLoading {
-                    ActivityIndicator(.constant(true), style: .medium)
-                } else {
-                    Text("\(getButtonLabelString(state))")
+                    }
                 }
-            }
-            .buttonStyle(.bordered)
-            
-        }
-        .lineLimit(1)
-        .padding(.horizontal)
-        .padding(.vertical, 15)
-        .overlay(Rectangle().frame(width: nil, height: 1, alignment: .top).foregroundColor(Color(uiColor: .separator)), alignment: .top)
-        .background(Color(uiColor: .systemBackground)
-            .shadow(color: .black.opacity(0.05), radius: 10, x: 0, y: 0)
-        )
+                //                if let error = state.error {
+                //
+                //                    HStack {
+                //                        Text("Error:")
+                //                            .bold()
+                //
+                //                        Text("\(error.localizedDescription)")
+                //
+                //                    }
+                //                    .foregroundColor(.red)
+                //                }
+                //            }
+                //            .font(state.error == nil ? .body : .caption)
+                
+                //            Spacer()
+                //
+                //            Button(action: onTap) {
+                //
+                //                if state.isLoading {
+                //                    ActivityIndicator(.constant(true), style: .medium)
+                //                } else {
+                //                    Text("\(getButtonLabelString(state))")
+                //                }
+                //            }
+                //            .buttonStyle(.bordered)
+            .lineLimit(1)
+//            .padding(.horizontal)
+//            .padding(.vertical, 10)
+//            .overlay(Rectangle().frame(width: nil, height: 1, alignment: .top).foregroundColor(Color(uiColor: .separator)), alignment: .top)
+//            .background(Color(uiColor: .systemBackground)
+//                .shadow(color: .black.opacity(0.05), radius: 10, x: 0, y: 0)
+//            )
+
         .animation(.spring(), value: state.isLoading)
+        .animation(.spring(), value: state.error?.localizedDescription)
     }
 }
 
