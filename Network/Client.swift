@@ -16,5 +16,6 @@ class Client: AnyClient {
     
     override func encode<C>(call: C) -> URLRequest where C: Call {
         return super.encode(call: call)
+
     }
 }

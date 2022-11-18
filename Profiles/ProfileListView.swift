@@ -8,46 +8,72 @@
 import SwiftUI
 import SDWebImageSwiftUI
 
+public func randomString(length: Int = 20) -> String {
+    let base = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+    var randomString: String = ""
+
+    for _ in 0..<length {
+        let randomValue = arc4random_uniform(UInt32(base.count))
+        randomString += "\(base[base.index(base.startIndex, offsetBy: Int(randomValue))])"
+    }
+    return randomString
+}
+
 struct ProfilesListView: View {
     
     @EnvironmentObject
     var reactor: ProfilesReactor
     
+    @State private var placeholderUser: [User] = []
+    
+    private func generatePlaceholderUsers(count: Int) -> [User] {
+        return (1...count).map {
+            User(id: $0, name: "\(randomString(length: Int.random(in: 10..<35)))")
+        }
+        
+    }
+    
     var body: some View {
-        VStack {
+        VStack(spacing: 0) {
             
             List {
                 
-                ForEach(reactor.state.users.item ?? [], id: \.id) { user in
+                ForEach(reactor.state.users.item ?? placeholderUser, id: \.id) { user in
                     NavigationLink(value: user) {
                         Text(user.name)
+                            .redacted(reason: reactor.state.users.item == nil ? .placeholder : [])
                     }
                     
                 }
+                .disabled(reactor.state.users.source == .none ? true : false)
             }
+//            .animation(.spring(), value: reactor.state.users.item)
             .navigationDestination(for: User.self) {
                 ReactorView(PostsReactor(state: PostsReactor.State(user: $0))) { PostsListView() }
-                    .navigationTitle("\($0.name)")
+                    .navigationTitle("\($0.name)'s")
             }
             
+
+            StateBarView(state: reactor.state.users,
+                         onTap: { Task { await reactor.action(.loadUsers) }})
+            
         }
-        //        .animation(.spring(), value: reactor.state.users)
+        
         .onAppear {
+            
+            placeholderUser = generatePlaceholderUsers(count: 10)
+            
             Task {
                 await reactor.action(.loadUsers)
             }
         }
         .refreshable {
-            Task {
-                await reactor.action(.loadUsers)
-            }
-        }
-        .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                if reactor.state.users.isLoading {
-                    ActivityIndicator(.constant(true), style: .medium)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.75) {
+                Task {
+                    await reactor.action(.loadUsers)
                 }
             }
+
         }
         
     }

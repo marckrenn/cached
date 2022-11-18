@@ -29,13 +29,31 @@ class PostsReactor: AsyncReactor {
         switch action {
         case .loadPosts:
             
-            state.posts = .loading
-            
             do {
-                state.posts = .loaded(try await api.getPosts(userId: state.user?.id ?? 0))
+                
+                state.posts = .loadingWithCache(try await api.getPosts(userId: state.user?.id ?? 0, loadWithCache: true))
+//                state.posts = .loading
+                
+                do {
+//                    state.posts = .loaded(try await api.getPosts(userId: state.user?.id ?? 0))
+                    state.posts = .loaded(try await api.getPosts(userId: state.user?.id ?? 0, loadWithCache: false))
+                    
+                    if let firstPostId = state.posts.item?.first?.id {
+                        do {
+                            try await api.preCacheComments(postId: firstPostId)
+                        } catch { }
+                    }
+                    
+                } catch {
+                    state.posts = .error(error)
+                    print("Error info: \(error)")
+                }
+                
             } catch {
+                state.posts = .error(error)
                 print("Error info: \(error)")
             }
+            
         }
     }
     

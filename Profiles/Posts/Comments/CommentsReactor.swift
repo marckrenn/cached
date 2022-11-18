@@ -24,18 +24,28 @@ class CommentsReactor: AsyncReactor {
         var comments = AsyncLoad<[Comment]>.none
     }
     
-    @MainActor
+    @MainActor 
     func action(_ action: Action) async {
         switch action {
         case .loadComments:
             
-            state.comments = .loading
-            
             do {
-                state.comments = .loaded(try await api.getComments(postId: state.post?.id ?? 0))
+                
+                state.comments = .loadingWithCache(try await api.getComments(postId: state.post?.id ?? 0, loadWithCache: true))
+//                state.comments = .loading
+                
+                do {
+                    state.comments = .loaded(try await api.getComments(postId: state.post?.id ?? 0, loadWithCache: false))
+                } catch {
+                    state.comments = .error(error)
+                    print("Error info: \(error)")
+                }
+                
             } catch {
+                state.comments = .error(error)
                 print("Error info: \(error)")
             }
+            
         }
     }
     

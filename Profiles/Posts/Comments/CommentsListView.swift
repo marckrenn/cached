@@ -13,42 +13,56 @@ struct CommentsListView: View {
     @EnvironmentObject
     var reactor: CommentsReactor
     
+    private var commentCount: String { (reactor.state.comments.item ?? []).count == 0 ? "?" : String((reactor.state.comments.item ?? []).count)
+}
+    
     var body: some View {
-        VStack {
+        VStack(spacing: 0) {
             
             List {
                 
-                Text(reactor.state.post?.body ?? "")
-                
-                Text("\((reactor.state.comments.item ?? []).count) comments:")
-                    .bold()
-                
-                ForEach(reactor.state.comments.item ?? [], id: \.id) { comment in
-                    VStack(alignment: .leading, spacing: 5) {
-                        Text(comment.body)
-                        Text("By: \(comment.email)")
-                            .font(.caption)
-                    }
+                Section {
                     
+                    Text(reactor.state.post?.title ?? "")
+                        .font(.title2)
+                    
+                    Text(reactor.state.post?.body ?? "")
+                        
                 }
-            }
+                .listRowSeparator(.hidden)
+                
+                Section(header:
+                    
+                            Text("\(commentCount) comments:")
+                    .bold()
+                        
+                ) {
+                
+                    ForEach(reactor.state.comments.item ?? [], id: \.id) { comment in
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text(comment.body)
+                            Text("by \(comment.email.lowercased())")
+                                .font(.caption)
+                                .italic()
+                        }
+                        .padding(.vertical)
+                    }
+                }
+            }                .listStyle(.plain)
+            
+            StateBarView(state: reactor.state.comments,
+                         onTap: { Task { await reactor.action(.loadComments) }})
             
         }
-        //        .animation(.spring(), value: reactor.state.users)
         .onAppear {
             Task {
                 await reactor.action(.loadComments)
             }
         }
         .refreshable {
-            Task {
-                await reactor.action(.loadComments)
-            }
-        }
-        .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                if reactor.state.comments.isLoading {
-                    ActivityIndicator(.constant(true), style: .medium)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.75) {
+                Task {
+                    await reactor.action(.loadComments)
                 }
             }
         }

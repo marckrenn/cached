@@ -28,13 +28,30 @@ class ProfilesReactor: AsyncReactor {
         switch action {
         case .loadUsers:
             
-            state.users = .loading
-            
             do {
-                state.users = .loaded(try await api.getUsers())
+                
+                state.users = .loadingWithCache(try await api.getUsers(loadWithCache: true))
+//                state.users = .loading
+                
+                do {
+                    state.users = .loaded(try await api.getUsers(loadWithCache: false))
+                    
+                    if let firstUserId = state.users.item?.first?.id {
+                        do {
+                            try await api.preCachePosts(userId: firstUserId)
+                        } catch { }
+                    }
+                    
+                } catch {
+                    state.users = .error(error)
+                    print("Error info: \(error)")
+                }
+                
             } catch {
+                state.users = .error(error)
                 print("Error info: \(error)")
             }
+            
         }
     }
     
