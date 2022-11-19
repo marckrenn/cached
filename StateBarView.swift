@@ -7,7 +7,6 @@
 
 import SwiftUI
 import AsyncReactor
-import SDWebImageSwiftUI
 import Endpoints
 import Combine
 
@@ -25,7 +24,7 @@ struct StateBarView<C: Call>: View {
     
     func getSourceString(_ source: HTTPSource) -> String {
         switch source {
-        case .none: return "None"
+        case .none: return "Placeholder"
         case .origin: return "Origin"
         case .cache: return "Cache"
         }
@@ -36,10 +35,7 @@ struct StateBarView<C: Call>: View {
     }
     
     func cacheAge(_ state: AsyncLoad<C>, currentDate: Date) -> String? {
-        let date = state.response?.allHeaderFields.first { key, value in
-            return key == "Date" as AnyHashable
-        }
-        guard let date = date?.value as? String else { return nil }
+        guard let date = state.response?.value(forHTTPHeaderField: "Date") else { return nil }
         
         let formatter = DateFormatter()
         formatter.dateFormat = "E, d MMM yyyy HH:mm:ss Z"
@@ -67,7 +63,7 @@ struct StateBarView<C: Call>: View {
                     
                     if state.isLoading {
                         
-                        ActivityIndicator(.constant(true), style: .medium)
+                        ProgressView()
                         
                     } else if state.source != .none {
                         

@@ -33,10 +33,8 @@ class PostsReactor: AsyncReactor {
             do {
                 
                 state.posts = .loadingWithCache(try await api.getPostsCached(userId: state.user?.id ?? 0))
-//                state.posts = .loading
                 
                 do {
-//                    state.posts = .loaded(try await api.getPosts(userId: state.user?.id ?? 0))
                     state.posts = .loaded(try await api.getPosts(userId: state.user?.id ?? 0))
                     
                     if let firstPostId = state.posts.item?.first?.id {

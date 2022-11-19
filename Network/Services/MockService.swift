@@ -18,30 +18,30 @@ struct MockService: Service {
     
     func removeAllCachedResponses() { }
     
-    func getUsers() async throws -> EndpointsResult<[User]> {
-        return EndpointsResult(value: [], response: .init(), source: .none)
+    func getUsers() async throws -> HTTPResult<GetUsers> {
+        return HTTPResult(value: [], response: .init(), source: .none)
     }
     
-    func getUsersCached() async throws -> EndpointsResult<[User]> {
-        return EndpointsResult(value: [], response: .init(), source: .none)
-    }
-    
-    
-    func getPosts(userId: Int) async throws -> EndpointsResult<[Post]> {
-        return EndpointsResult(value: [], response: .init(), source: .none)
-    }
-    
-    func getPostsCached(userId: Int) async throws -> EndpointsResult<[Post]> {
-        return EndpointsResult(value: [], response: .init(), source: .none)
+    func getUsersCached() async throws -> HTTPResult<GetUsers> {
+        return HTTPResult(value: [], response: .init(), source: .none)
     }
     
     
-    func getComments(postId: Int) async throws -> EndpointsResult<[Comment]> {
-        return EndpointsResult(value: [], response: .init(), source: .none)
+    func getPosts(userId: Int) async throws -> HTTPResult<GetPosts> {
+        return HTTPResult(value: [], response: .init(), source: .none)
     }
     
-    func getCommentsCached(postId: Int) async throws -> EndpointsResult<[Comment]> {
-        return EndpointsResult(value: [], response: .init(), source: .none)
+    func getPostsCached(userId: Int) async throws -> HTTPResult<GetPosts> {
+        return HTTPResult(value: [], response: .init(), source: .none)
+    }
+    
+    
+    func getComments(postId: Int) async throws -> HTTPResult<GetComments> {
+        return HTTPResult(value: [], response: .init(), source: .none)
+    }
+    
+    func getCommentsCached(postId: Int) async throws -> HTTPResult<GetComments> {
+        return HTTPResult(value: [], response: .init(), source: .none)
     }
     
     

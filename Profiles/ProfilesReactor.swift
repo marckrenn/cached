@@ -30,20 +30,9 @@ class ProfilesReactor: AsyncReactor {
         switch action {
         case .loadUsers:
             
-//            fetch(state: .users, call: api.getUsers(), policy: [.loadWithCache, .offlineCache]) {
-//
-//                $0.success {
-//
-//                }.error {
-//
-//                }
-//
-//            }
-            
             do {
                 
                 state.users = .loadingWithCache(try await api.getUsersCached())
-//                state.users = .loading
                 
                 do {
                     state.users = .loaded(try await api.getUsers())

@@ -12,14 +12,14 @@ protocol Service {
     
     func removeAllCachedResponses()
     
-    func getUsers() async throws -> EndpointsResult<[User]>
-    func getUsersCached() async throws -> EndpointsResult<[User]>
+    func getUsers() async throws -> HTTPResult<GetUsers>
+    func getUsersCached() async throws -> HTTPResult<GetUsers>
     
-    func getPosts(userId: Int) async throws -> EndpointsResult<[Post]>
-    func getPostsCached(userId: Int) async throws -> EndpointsResult<[Post]>
+    func getPosts(userId: Int) async throws -> HTTPResult<GetPosts>
+    func getPostsCached(userId: Int) async throws -> HTTPResult<GetPosts>
     
-    func getComments(postId: Int) async throws -> EndpointsResult<[Comment]>
-    func getCommentsCached(postId: Int) async throws -> EndpointsResult<[Comment]>
+    func getComments(postId: Int) async throws -> HTTPResult<GetComments>
+    func getCommentsCached(postId: Int) async throws -> HTTPResult<GetComments>
     
     func preCachePosts(userId: Int) async throws -> Void
     func preCacheComments(postId: Int) async throws -> Void

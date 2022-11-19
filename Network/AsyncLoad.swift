@@ -33,9 +33,9 @@ public enum AsyncLoad<C: Call> {
     case loading
     case error(Error)
     case errorWithCache((HTTPResult<C>, Error))
-    case loaded(EndpointsResult<C.Parser.OutputType>)
-    case cached(EndpointsResult<C.Parser.OutputType>)
-    case loadingWithCache(EndpointsResult<C.Parser.OutputType>)
+    case loaded(HTTPResult<C>)
+    case cached(HTTPResult<C>)
+    case loadingWithCache(HTTPResult<C>)
     
     public var isLoading: Bool {
         switch self {
@@ -60,7 +60,7 @@ public enum AsyncLoad<C: Call> {
         
         set {
             if let item = newValue {
-                self = .loaded(item as! EndpointsResult<C.Parser.OutputType>)
+                self = .loaded(item as! HTTPResult<C>)
             } else {
                 self = .none
             }
