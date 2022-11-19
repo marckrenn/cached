@@ -23,7 +23,7 @@ struct StateBarView<C: Call>: View {
         .receive(on: RunLoop.main)
         .merge(with: Just(Date()))
     
-    func getSourceString(_ source: HttpSource) -> String {
+    func getSourceString(_ source: HTTPSource) -> String {
         switch source {
         case .none: return "None"
         case .origin: return "Origin"

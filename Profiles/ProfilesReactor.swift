@@ -30,13 +30,23 @@ class ProfilesReactor: AsyncReactor {
         switch action {
         case .loadUsers:
             
+//            fetch(state: .users, call: api.getUsers(), policy: [.loadWithCache, .offlineCache]) {
+//
+//                $0.success {
+//
+//                }.error {
+//
+//                }
+//
+//            }
+            
             do {
                 
-                state.users = .loadingWithCache(try await api.getUsers(loadWithCache: true))
+                state.users = .loadingWithCache(try await api.getUsersCached())
 //                state.users = .loading
                 
                 do {
-                    state.users = .loaded(try await api.getUsers(loadWithCache: false))
+                    state.users = .loaded(try await api.getUsers())
                     
                     if let firstUserId = state.users.item?.first?.id {
                         do {
@@ -44,7 +54,7 @@ class ProfilesReactor: AsyncReactor {
                         } catch { }
                     }
                     
-                } catch HttpError<GetUsers>.NoResponseWithCache(let error) {
+                } catch HTTPError<GetUsers>.noResponseWithCache(let error) {
                     state.users = .errorWithCache(error)
                     print("Error info: \(error)")
                 }

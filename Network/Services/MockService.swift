@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Endpoints
 
 struct MockService: Service {
     
@@ -17,17 +18,32 @@ struct MockService: Service {
     
     func removeAllCachedResponses() { }
     
-    func getUsers(loadWithCache: Bool) async throws -> EndpointsResult<[User]> {
-        return EndpointsResult(data: [], response: .init(), source: .none)
+    func getUsers() async throws -> EndpointsResult<[User]> {
+        return EndpointsResult(value: [], response: .init(), source: .none)
     }
     
-    func getPosts(userId: Int, loadWithCache: Bool) async throws -> EndpointsResult<[Post]> {
-        return EndpointsResult(data: [], response: .init(), source: .none)
+    func getUsersCached() async throws -> EndpointsResult<[User]> {
+        return EndpointsResult(value: [], response: .init(), source: .none)
     }
     
-    func getComments(postId: Int, loadWithCache: Bool) async throws -> EndpointsResult<[Comment]> {
-        return EndpointsResult(data: [], response: .init(), source: .none)
+    
+    func getPosts(userId: Int) async throws -> EndpointsResult<[Post]> {
+        return EndpointsResult(value: [], response: .init(), source: .none)
     }
+    
+    func getPostsCached(userId: Int) async throws -> EndpointsResult<[Post]> {
+        return EndpointsResult(value: [], response: .init(), source: .none)
+    }
+    
+    
+    func getComments(postId: Int) async throws -> EndpointsResult<[Comment]> {
+        return EndpointsResult(value: [], response: .init(), source: .none)
+    }
+    
+    func getCommentsCached(postId: Int) async throws -> EndpointsResult<[Comment]> {
+        return EndpointsResult(value: [], response: .init(), source: .none)
+    }
+    
     
     func preCachePosts(userId: Int) async throws { }
     

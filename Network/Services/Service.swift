@@ -6,14 +6,20 @@
 //
 
 import Foundation
+import Endpoints
 
 protocol Service {
     
     func removeAllCachedResponses()
     
-    func getUsers(loadWithCache: Bool) async throws -> EndpointsResult<[User]>
-    func getPosts(userId: Int, loadWithCache: Bool) async throws -> EndpointsResult<[Post]>
-    func getComments(postId: Int, loadWithCache: Bool) async throws -> EndpointsResult<[Comment]>
+    func getUsers() async throws -> EndpointsResult<[User]>
+    func getUsersCached() async throws -> EndpointsResult<[User]>
+    
+    func getPosts(userId: Int) async throws -> EndpointsResult<[Post]>
+    func getPostsCached(userId: Int) async throws -> EndpointsResult<[Post]>
+    
+    func getComments(postId: Int) async throws -> EndpointsResult<[Comment]>
+    func getCommentsCached(postId: Int) async throws -> EndpointsResult<[Comment]>
     
     func preCachePosts(userId: Int) async throws -> Void
     func preCacheComments(postId: Int) async throws -> Void

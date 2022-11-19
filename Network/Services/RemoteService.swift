@@ -34,17 +34,33 @@ struct RemoteService: Service {
         session.urlSession.configuration.urlCache?.removeAllCachedResponses()
     }
     
-    func getUsers(loadWithCache: Bool) async throws -> EndpointsResult<[User]> {
-        try await makeCall(GetUsers(), loadWidthCache: loadWithCache)
+    
+    func getUsers() async throws -> EndpointsResult<[User]> {
+        try await makeCall(GetUsers(), loadWidthCache: false)
     }
     
-    func getPosts(userId: Int, loadWithCache: Bool) async throws -> EndpointsResult<[Post]> {
-        try await makeCall(GetPosts(userId: userId), loadWidthCache: loadWithCache)
+    func getUsersCached() async throws -> EndpointsResult<[User]> {
+        try await makeCall(GetUsers(), loadWidthCache: true)
     }
+    
+    
+    func getPosts(userId: Int) async throws -> EndpointsResult<[Post]> {
+        try await makeCall(GetPosts(userId: userId), loadWidthCache: false)
+    }
+    
+    func getPostsCached(userId: Int) async throws -> EndpointsResult<[Post]> {
+        try await makeCall(GetPosts(userId: userId), loadWidthCache: true)
+    }
+    
 
-    func getComments(postId: Int, loadWithCache: Bool) async throws -> EndpointsResult<[Comment]> {
-        try await makeCall(GetComments(postId: postId), loadWidthCache: loadWithCache)
+    func getComments(postId: Int) async throws -> EndpointsResult<[Comment]> {
+        try await makeCall(GetComments(postId: postId), loadWidthCache: false)
     }
+    
+    func getCommentsCached(postId: Int) async throws -> EndpointsResult<[Comment]> {
+        try await makeCall(GetComments(postId: postId), loadWidthCache: true)
+    }
+    
     
     func preCachePosts(userId: Int) async throws -> Void {
         try await preCacheCall(GetPosts(userId: userId), cachePolicy: .reloadRevalidatingCacheData)
@@ -82,25 +98,13 @@ struct RemoteService: Service {
     
 }
 
-public class EndpointsResult<T> {
-    internal init(data: T, response: HTTPURLResponse, source: HttpSource) {
-        self.data = data
-        self.response = response
-        self.source = source
-    }
-    
-    let data: T
-    let response: HTTPURLResponse
-    let source: HttpSource
-}
-
 extension RemoteService {
     private func makeCall<C: Call>(_ call: C,
                                    loadWidthCache: Bool,
                                    offlineCaching: Bool = true,
                                    cachePolicy: NSURLRequest.CachePolicy = .reloadIgnoringLocalCacheData) async throws -> EndpointsResult<C.Parser.OutputType> {
         let response = try await session.start(call: call, loadWidthCache: loadWidthCache, offlineCaching: offlineCaching, cachePolicy: cachePolicy)
-        return EndpointsResult(data: response.0 as C.Parser.OutputType, response: response.1, source: response.2)
+        return EndpointsResult(value: response.0 as C.Parser.OutputType, response: response.1, source: response.2)
     }
     
     private func preCacheCall<C: Call>(_ call: C, cachePolicy: NSURLRequest.CachePolicy = .returnCacheDataElseLoad) async throws -> Void {

@@ -32,7 +32,7 @@ public enum AsyncLoad<C: Call> {
     case none
     case loading
     case error(Error)
-    case errorWithCache((HttpResult<C>, Error))
+    case errorWithCache((HTTPResult<C>, Error))
     case loaded(EndpointsResult<C.Parser.OutputType>)
     case cached(EndpointsResult<C.Parser.OutputType>)
     case loadingWithCache(EndpointsResult<C.Parser.OutputType>)
@@ -50,7 +50,7 @@ public enum AsyncLoad<C: Call> {
         get {
             switch self {
             case .loaded(let item), .cached(let item), .loadingWithCache(let item):
-                return item.data
+                return item.value
             case .errorWithCache(let error):
                 return error.0.value
             default:
@@ -67,7 +67,7 @@ public enum AsyncLoad<C: Call> {
         }
     }
     
-    public var source: HttpSource {
+    public var source: HTTPSource {
         switch self {
         case .loaded(let result), .cached(let result), .loadingWithCache(let result):
             return result.source

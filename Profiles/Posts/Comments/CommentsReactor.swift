@@ -32,12 +32,12 @@ class CommentsReactor: AsyncReactor {
             
             do {
                 
-                state.comments = .loadingWithCache(try await api.getComments(postId: state.post?.id ?? 0, loadWithCache: true))
+                state.comments = .loadingWithCache(try await api.getCommentsCached(postId: state.post?.id ?? 0))
 //                state.comments = .loading
                 
                 do {
-                    state.comments = .loaded(try await api.getComments(postId: state.post?.id ?? 0, loadWithCache: false))
-                } catch HttpError<GetComments>.NoResponseWithCache(let error) {
+                    state.comments = .loaded(try await api.getComments(postId: state.post?.id ?? 0))
+                } catch HTTPError<GetComments>.noResponseWithCache(let error) {
                     state.comments = .errorWithCache(error)
                     print("Error info: \(error)")
                 }
