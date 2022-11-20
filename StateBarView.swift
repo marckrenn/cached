@@ -25,7 +25,8 @@ struct StateBarView<C: Call>: View {
     
     func getSourceString(_ source: HTTPSource) -> String {
         switch source {
-        case .none: return "Placeholder"
+        case .none: return "None"
+        case .placeholder: return "Placeholder"
         case .origin: return "Origin"
         case .cache: return "Cache"
         }
@@ -55,8 +56,9 @@ struct StateBarView<C: Call>: View {
         
         HStack {
             
-            Text("\(getSourceString(state.source))")
+            Text("\(getSourceString(state.source).uppercased())")
                 .bold()
+                .font(.subheadline)
             
             Spacer()
             
@@ -64,7 +66,7 @@ struct StateBarView<C: Call>: View {
                 
                 ProgressView()
                 
-            } else if state.source != .none {
+            } else if state.source == .origin || state.source == .cache {
                 
                 Button(action: onTap) {
                     Text(cacheAge.uppercased())
@@ -79,15 +81,17 @@ struct StateBarView<C: Call>: View {
                         .padding(.horizontal, 5)
                         .overlay(
                             RoundedRectangle(cornerRadius: 5, style: .continuous)
-                                .stroke(Color.accentColor, lineWidth: 1)
-                                .background(Color.accentColor.opacity(0.1))
+                                .stroke(Color.accentColor.opacity(0.5), lineWidth: 1)
+                                .background(Color.accentColor.opacity(0.2))
                         )
+                        .padding(.horizontal, -9)
                 }
             }
             
-            if let error = state.error {
+            if !state.isLoading, let error = state.error{
                 Button(action: { showingErrorAlert.toggle() }) {
-                    Text("\(error.localizedDescription.uppercased())")
+//                    Text("\(error.localizedDescription.uppercased())")
+                    Text("ERROR")
                         .monospacedDigit()
                         .bold()
                         .font(.caption)
@@ -96,11 +100,11 @@ struct StateBarView<C: Call>: View {
                         .padding(.horizontal, 5)
                         .overlay(
                             RoundedRectangle(cornerRadius: 5, style: .continuous)
-                                .stroke(Color.red, lineWidth: 1)
-                                .background(Color.red.opacity(0.1))
+                                .stroke(Color.red.opacity(0.5), lineWidth: 1)
+                                .background(Color.red.opacity(0.2))
                         )
+                        .padding(.horizontal, -9)
                 }
-                
                 
             }
         }

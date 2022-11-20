@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import SDWebImageSwiftUI
 
 struct CommentsListView: View {
     
@@ -51,6 +50,13 @@ struct CommentsListView: View {
             }                .listStyle(.plain)
             
         }
+        .toolbar {
+            Button(action: { Task { await reactor.action(.loadComments) } }) {
+                Image(systemName: "goforward")
+            }
+            .disabled(reactor.state.comments.isLoading)
+        }
+        
         .toolbar {
             ToolbarItem(placement: .bottomBar) {
                 StateBarView(state: reactor.state.comments,

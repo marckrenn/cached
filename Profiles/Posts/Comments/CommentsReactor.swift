@@ -38,12 +38,10 @@ class CommentsReactor: AsyncReactor {
                     
                 } catch HTTPError<GetComments>.noResponseWithCache(let error) {
                     state.comments = .errorWithCache(error)
-                    print("Error info: \(error)")
                 }
                 
             } catch {
                 state.comments = .error(error)
-                print("Error info: \(error)")
             }
             
         }

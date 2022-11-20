@@ -6,20 +6,11 @@
 //
 
 import SwiftUI
-import SDWebImageSwiftUI
 
 struct PostsListView: View {
     
     @EnvironmentObject
     var reactor: PostsReactor
-    
-    @State private var placeholderPosts: [Post] = []
-    
-    private func generatePlaceholderPosts(count: Int) -> [Post] {
-        return (1...count).map {
-            Post(userId: reactor.state.user?.id ?? 0, id: $0, title: "\(randomString(length: Int.random(in: 20..<35)))", body: "")
-        }
-    }
     
     var body: some View {
         VStack(spacing: 0) {
@@ -33,17 +24,17 @@ struct PostsListView: View {
                         
                 ) {
                     
-                    ForEach(reactor.state.posts.item ?? placeholderPosts, id: \.id) { post in
+                    ForEach(reactor.state.posts.item ?? [], id: \.id) { post in
                         NavigationLink(value: post) {
                             VStack(alignment: .leading, spacing: 5) {
                                 Text(post.title)
                                     .lineLimit(1)
-                                    .redacted(reason: reactor.state.posts.item == nil ? .placeholder : [])
+                                    .redacted(reason: reactor.state.posts.source == .placeholder ? .placeholder : [])
                             }
                         }
                         
                     }
-                    .disabled(reactor.state.posts.source == .none ? true : false)
+                    .disabled(reactor.state.posts.source == .none || reactor.state.posts.source == .placeholder ? true : false)
                 }
             }
             .navigationDestination(for: Post.self) {
@@ -52,6 +43,12 @@ struct PostsListView: View {
                     .navigationBarTitleDisplayMode(.inline)
             }
             
+        }
+        .toolbar {
+            Button(action: { Task { await reactor.action(.loadPosts) } }) {
+                Image(systemName: "goforward")
+            }
+            .disabled(reactor.state.posts.isLoading)
         }
         
         .toolbar {
@@ -62,9 +59,6 @@ struct PostsListView: View {
         }
         
         .onAppear {
-            
-            placeholderPosts = generatePlaceholderPosts(count: 10)
-            
             Task {
                 await reactor.action(.loadPosts)
             }

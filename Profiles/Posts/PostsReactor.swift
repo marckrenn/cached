@@ -22,13 +22,15 @@ class PostsReactor: AsyncReactor {
     
     struct State {
         var user: User?
-        var posts = AsyncLoad<GetPosts>.none
+        var posts = AsyncLoad<GetPosts>.placeholder(.mock)
     }
     
     @MainActor
     func action(_ action: Action) async {
         switch action {
         case .loadPosts:
+            
+            loading(state: &state.posts, withPlaceholder: .mock)
             
             do {
                 
@@ -45,12 +47,10 @@ class PostsReactor: AsyncReactor {
                     
                 } catch HTTPError<GetPosts>.noResponseWithCache(let error) {
                     state.posts = .errorWithCache(error)
-                    print("Error info: \(error)")
                 }
                 
             } catch {
-                state.posts = .error(error)
-                print("Error info: \(error)")
+                state.posts = .errorWithPlaceholder((.mock, error))
             }
             
         }

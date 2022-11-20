@@ -22,7 +22,7 @@ class ProfilesReactor: AsyncReactor {
     }
     
     struct State {
-        var users = AsyncLoad<GetUsers>.none
+        var users = AsyncLoad<GetUsers>.placeholder(.mock)
     }
     
     @MainActor
@@ -30,27 +30,34 @@ class ProfilesReactor: AsyncReactor {
         switch action {
         case .loadUsers:
             
+            // Required for placeholder
+            loading(state: &state.users, withPlaceholder: .mock)
+            
             do {
                 
+                // Required for offline-caching
                 state.users = .loadingWithCache(try await api.getUsersCached())
+//                state.users = .loading
                 
                 do {
+                    
                     state.users = .loaded(try await api.getUsers())
                     
+                    // Pre-Cache
                     if let firstUserId = state.users.item?.first?.id {
                         do {
                             try await api.preCachePosts(userId: firstUserId)
                         } catch { }
                     }
                     
+                // Required for offline-caching
                 } catch HTTPError<GetUsers>.noResponseWithCache(let error) {
                     state.users = .errorWithCache(error)
-                    print("Error info: \(error)")
                 }
                 
             } catch {
-                state.users = .error(error)
-                print("Error info: \(error)")
+                // Required for placeholder
+                state.users = .errorWithPlaceholder((.mock, error))
             }
             
         case .removeAllCachedResponses: api.removeAllCachedResponses()

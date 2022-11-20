@@ -6,18 +6,6 @@
 //
 
 import SwiftUI
-import SDWebImageSwiftUI
-
-public func randomString(length: Int = 20) -> String {
-    let base = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-    var randomString: String = ""
-    
-    for _ in 0..<length {
-        let randomValue = arc4random_uniform(UInt32(base.count))
-        randomString += "\(base[base.index(base.startIndex, offsetBy: Int(randomValue))])"
-    }
-    return randomString
-}
 
 struct ProfilesListView: View {
     
@@ -25,28 +13,21 @@ struct ProfilesListView: View {
     var reactor: ProfilesReactor
     
     @State private var placeholderUser: [User] = []
-    @State private var showingAlert = false
-    
-    private func generatePlaceholderUsers(count: Int) -> [User] {
-        return (1...count).map {
-            User(id: $0, name: "\(randomString(length: Int.random(in: 10..<35)))")
-        }
-        
-    }
+    @State private var showingCacheAlert = false
     
     var body: some View {
         VStack(spacing: 0) {
             
             List {
                 
-                ForEach(reactor.state.users.item ?? placeholderUser, id: \.id) { user in
+                ForEach(reactor.state.users.item ?? [], id: \.id) { user in
                     NavigationLink(value: user) {
                         Text(user.name)
-                            .redacted(reason: reactor.state.users.item == nil ? .placeholder : [])
+                            .redacted(reason: reactor.state.users.source == .placeholder ? .placeholder : [])
                     }
                     
                 }
-                .disabled(reactor.state.users.source == .none ? true : false)
+                .disabled(reactor.state.users.source == .none || reactor.state.users.source == .placeholder ? true : false)
             }
             .navigationDestination(for: User.self) {
                 ReactorView(PostsReactor(state: PostsReactor.State(user: $0))) { PostsListView() }
@@ -63,9 +44,6 @@ struct ProfilesListView: View {
         }
         
         .onAppear {
-            
-            placeholderUser = generatePlaceholderUsers(count: 10)
-            
             Task {
                 await reactor.action(.loadUsers)
             }
@@ -79,18 +57,29 @@ struct ProfilesListView: View {
             
         }
         .toolbar {
-            Button(action: { showingAlert.toggle() }) {
-                Image(systemName: "trash")
-                    .foregroundColor(.red)
+            ToolbarItemGroup {
+                
+                Button(action: { showingCacheAlert.toggle() }) {
+                    Image(systemName: "trash")
+                        .foregroundColor(.red)
+                }
+                
+                Button(action: { Task { await reactor.action(.loadUsers) } }) {
+                    Image(systemName: "goforward")
+                }
+                .disabled(reactor.state.users.isLoading)
+                
             }
         }
-        .alert("Remove all cached responses?", isPresented: $showingAlert) {
+        .alert("Cache",
+               isPresented: $showingCacheAlert,
+               actions: {
             Button("Cancel", role: .cancel) { }
             Button("Remove", role: .destructive) {
                 Task {
                     await reactor.action(.removeAllCachedResponses)
                 }}
-        }
+        }, message: { Text("Remove all cached responses?") })
         
     }
 }

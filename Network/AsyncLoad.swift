@@ -30,16 +30,22 @@ public enum AsyncLoad<C: Call> {
     }
     
     case none
+    case placeholder(C.Parser.OutputType)
+    
     case loading
-    case error(Error)
-    case errorWithCache((HTTPResult<C>, Error))
+    case loadingWithPlaceholder(C.Parser.OutputType)
+    case loadingWithCache(HTTPResult<C>)
+    
     case loaded(HTTPResult<C>)
     case cached(HTTPResult<C>)
-    case loadingWithCache(HTTPResult<C>)
+    
+    case error(Error)
+    case errorWithCache((HTTPResult<C>, Error))
+    case errorWithPlaceholder((C.Parser.OutputType, Error))
     
     public var isLoading: Bool {
         switch self {
-        case .loading, .loadingWithCache, .cached, .none:
+        case .loading, .loadingWithCache, .cached, .placeholder, .loadingWithPlaceholder:
             return true
         default:
             return false
@@ -51,6 +57,10 @@ public enum AsyncLoad<C: Call> {
             switch self {
             case .loaded(let item), .cached(let item), .loadingWithCache(let item):
                 return item.value
+            case .placeholder(let placeholder), .loadingWithPlaceholder(let placeholder):
+                return placeholder
+            case .errorWithPlaceholder(let tuple):
+                return tuple.0
             case .errorWithCache(let error):
                 return error.0.value
             default:
@@ -71,6 +81,8 @@ public enum AsyncLoad<C: Call> {
         switch self {
         case .loaded(let result), .cached(let result), .loadingWithCache(let result):
             return result.source
+        case .placeholder, .errorWithPlaceholder, .loadingWithPlaceholder:
+            return .placeholder
         case .errorWithCache(let error):
             return error.0.source
         default:
@@ -84,6 +96,9 @@ public enum AsyncLoad<C: Call> {
             guard !self.isLoading else { return nil }
             return error
         case .errorWithCache(let error):
+            guard !self.isLoading else { return nil }
+            return error.1
+        case .errorWithPlaceholder(let error):
             guard !self.isLoading else { return nil }
             return error.1
         default:
