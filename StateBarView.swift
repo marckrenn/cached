@@ -16,6 +16,7 @@ struct StateBarView<C: Call>: View {
     let onTap: () -> ()
     
     @State private var cacheAge = ""
+    @State private var showingErrorAlert = false
     
     let timer = Timer.publish(every: 1, on: .main, in: .common)
         .autoconnect()
@@ -51,92 +52,64 @@ struct StateBarView<C: Call>: View {
     }
     
     var body: some View {
-//        VStack {
+        
+        HStack {
+            
+            Text("\(getSourceString(state.source))")
+                .bold()
+            
+            Spacer()
+            
+            if state.isLoading {
                 
+                ProgressView()
                 
-                HStack {
-                    
-                    Text("\(getSourceString(state.source))")
+            } else if state.source != .none {
+                
+                Button(action: onTap) {
+                    Text(cacheAge.uppercased())
+                        .monospacedDigit()
                         .bold()
-                    
-                    Spacer()
-                    
-                    if state.isLoading {
-                        
-                        ProgressView()
-                        
-                    } else if state.source != .none {
-                        
-                        Text(cacheAge.uppercased())
-                            .monospacedDigit()
-                            .bold()
-                            .font(.caption)
-                            .foregroundColor(.accentColor)
-                            .onReceive(timer) { input in
-                                cacheAge = cacheAge(state, currentDate: input) ?? "0 sec old"
-                            }
-                            .padding(.vertical, 2)
-                            .padding(.horizontal, 5)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 5, style: .continuous)
-                                    .stroke(Color.accentColor, lineWidth: 1)
-                                    .background(Color.accentColor.opacity(0.1))
-                            )
-                    }
-                    
-                    if let error = state.error {
-                        
-                        Text("\(error.localizedDescription.uppercased())")
-                            .monospacedDigit()
-                            .bold()
-                            .font(.caption)
-                            .foregroundColor(.red)
-                            .padding(.vertical, 2)
-                            .padding(.horizontal, 5)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 5, style: .continuous)
-                                    .stroke(Color.red, lineWidth: 1)
-                                    .background(Color.red.opacity(0.1))
-                            )
-                        
-
-                    }
+                        .font(.caption)
+                        .foregroundColor(.accentColor)
+                        .onReceive(timer) { input in
+                            cacheAge = cacheAge(state, currentDate: input) ?? "0 sec old"
+                        }
+                        .padding(.vertical, 2)
+                        .padding(.horizontal, 5)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 5, style: .continuous)
+                                .stroke(Color.accentColor, lineWidth: 1)
+                                .background(Color.accentColor.opacity(0.1))
+                        )
                 }
-                //                if let error = state.error {
-                //
-                //                    HStack {
-                //                        Text("Error:")
-                //                            .bold()
-                //
-                //                        Text("\(error.localizedDescription)")
-                //
-                //                    }
-                //                    .foregroundColor(.red)
-                //                }
-                //            }
-                //            .font(state.error == nil ? .body : .caption)
+            }
+            
+            if let error = state.error {
+                Button(action: { showingErrorAlert.toggle() }) {
+                    Text("\(error.localizedDescription.uppercased())")
+                        .monospacedDigit()
+                        .bold()
+                        .font(.caption)
+                        .foregroundColor(.red)
+                        .padding(.vertical, 2)
+                        .padding(.horizontal, 5)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 5, style: .continuous)
+                                .stroke(Color.red, lineWidth: 1)
+                                .background(Color.red.opacity(0.1))
+                        )
+                }
                 
-                //            Spacer()
-                //
-                //            Button(action: onTap) {
-                //
-                //                if state.isLoading {
-                //                    ActivityIndicator(.constant(true), style: .medium)
-                //                } else {
-                //                    Text("\(getButtonLabelString(state))")
-                //                }
-                //            }
-                //            .buttonStyle(.bordered)
-            .lineLimit(1)
-//            .padding(.horizontal)
-//            .padding(.vertical, 10)
-//            .overlay(Rectangle().frame(width: nil, height: 1, alignment: .top).foregroundColor(Color(uiColor: .separator)), alignment: .top)
-//            .background(Color(uiColor: .systemBackground)
-//                .shadow(color: .black.opacity(0.05), radius: 10, x: 0, y: 0)
-//            )
-
+                
+            }
+        }
+        .lineLimit(1)
         .animation(.spring(), value: state.isLoading)
         .animation(.spring(), value: state.error?.localizedDescription)
+        .alert(isPresented: $showingErrorAlert) {
+            Alert(title: Text("Error"), message: Text(state.error?.localizedDescription ?? ""), dismissButton: .default(Text("Close")))
+        }
     }
 }
 
