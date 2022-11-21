@@ -20,9 +20,10 @@ struct ProfilesListView: View {
             
             List {
                 
-                ForEach(reactor.state.users.item ?? [], id: \.id) { user in
+                ForEach(reactor.state.users.item ?? .mock, id: \.id) { user in
                     NavigationLink(value: user) {
                         Text(user.name)
+                            // Required for placeholder
                             .redacted(reason: reactor.state.users.source == .placeholder ? .placeholder : [])
                     }
                     

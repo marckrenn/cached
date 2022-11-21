@@ -28,7 +28,7 @@ struct StateBarView<C: Call>: View {
         case .none: return "None"
         case .placeholder: return "Placeholder"
         case .origin: return "Origin"
-        case .cache: return "Cache"
+        case .cache: return state.error == nil ? "Cache" : "Cache (Offline)"
         }
     }
     
