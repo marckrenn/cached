@@ -40,6 +40,7 @@ struct StateBarView<C: Call>: View {
         guard let date = state.response?.value(forHTTPHeaderField: "Date") else { return nil }
         
         let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_us")
         formatter.dateFormat = "E, d MMM yyyy HH:mm:ss Z"
         let cacheDate = formatter.date(from: date)
         
@@ -88,9 +89,8 @@ struct StateBarView<C: Call>: View {
                 }
             }
             
-            if !state.isLoading, let error = state.error{
+            if !state.isLoading && state.error != nil {
                 Button(action: { showingErrorAlert.toggle() }) {
-//                    Text("\(error.localizedDescription.uppercased())")
                     Text("ERROR")
                         .monospacedDigit()
                         .bold()

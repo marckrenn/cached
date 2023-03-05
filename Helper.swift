@@ -7,6 +7,8 @@
 
 import Foundation
 import Endpoints
+import AsyncReactor
+import SwiftUI
 
 public func randomString(length: Int = 20) -> String {
     let base = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
@@ -22,5 +24,16 @@ public func randomString(length: Int = 20) -> String {
 func loading<C: Call>(state: inout AsyncLoad<C>, withPlaceholder: C.Parser.OutputType) {
     if state.source == .none || state.source == .placeholder {
         state = .loadingWithPlaceholder(withPlaceholder)
+    }
+}
+
+extension AsyncReactor {
+    @MainActor
+    public func bind<T, A>(_ keyPath: KeyPath<State, T>, to action: @escaping (A) -> Action) -> Binding<T> {
+        Binding {
+            self.state[keyPath: keyPath]
+        } set: { newValue in
+            Task { await self.action(action(newValue as! A)) }
+        }
     }
 }
